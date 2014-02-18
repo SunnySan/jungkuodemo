@@ -20,6 +20,7 @@
 	<script type="text/javascript" src="js/phonegap-nfc.js"></script><!--NFC，請參考https://github.com/chariotsolutions/phonegap-nfc -->
 	<script src="js/plugins/LaunchMyApp.js"></script><!--Launch my app，請參考 https://github.com/EddyVerbruggen/LaunchMyApp-PhoneGap-Plugin/blob/d1432ecfff63678a3155804839dda21607706e72/README.md -->
 	<!--<script src="js/barcodescanner.js"></script>--><!--Barcode scanner，請參考 https://github.com/phonegap-build/BarcodeScanner/blob/9270025f71891b2f46a38b7bc3d1223b4955dce2/README.md -->
+	<script type="text/javascript" src="js/jquery.cookie.js"></script><!--Browser用的Cookie函數，請參考 https://github.com/carhartl/jquery-cookie -->
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 </head>
@@ -44,6 +45,17 @@
 		<input type="button" value="設定監聽器" onclick="setListener();">
 		<hr>
 		-->
+		<div>
+			<input type="button" value="更新記錄" onclick="doRefresh();">
+		</div>
+		<p>
+		<div>
+			<table id="tblResult" name="tblResult" border=1>
+				<thead><tr><td>時間</td><td>人員</td><td>地點</td></tr></thead>
+				<tbody></tbody>
+			</table>
+		</div>
+
 	</div><!-- /content -->
 </div><!-- 首頁 -->
 
@@ -65,6 +77,9 @@
 		<input type="button" value="設定監聽器" onclick="setListener();">
 		<hr>
 		-->
+		請輸入您的姓名
+		<input type="text" id="name" name="name">
+		<input type="button" value="確認" onclick="doSave();">
 	</div><!-- /content -->
 </div><!-- 姓名設定 -->
 
@@ -145,6 +160,7 @@
 	var sRecord		= "";	//寫入至NFC的內容，若此變數無值則不寫入NFC
 	var sCoupon		= "";	//目前是否有折價券，若此變數有值則跳至coupon頁
 	var isSharing	= false;	//目前是否正處於分享狀態
+	var sName		= getLocalValue("name");
 
 	document.addEventListener("deviceready", onDeviceReady, false);
 	
@@ -173,9 +189,11 @@
 		if (notEmpty(s)){
 			sCoupon = decodeURIComponent(s);
 			alert("已取得" + sCoupon + "巡邏資料，將為您上傳至總公司!");
+			var myName = sName;
+			if (beEmpty(myName)) myName="TestUser";
 			getDataFromServer(
 				'ajaxSavePlaceData.jsp',
-				'logperson=' + 'sunny' + '&logplace=' + sCoupon,
+				'logperson=' + myName + '&logplace=' + sCoupon,
 				'xml',
 				function(){},
 				true
@@ -194,14 +212,21 @@
 		$('#coupon #btnCoupon').button("refresh");
 	});
 	
-	$('#shop').on('pageshow',function(event){
-		updateCouponCount();
+	$('#home').on('pageshow',function(event){
+		doRefresh();
+		$('#setname #name').val(sName);
 	});
 	
 	function writeTag(text){	//準備寫入NFC
 		var s = $('#writer #' + text).val();
 		sRecord = s;
 		showBlockUI();
+	}	//function writeTag(text){	//準備寫入NFC
+
+	function doSave(){	//將姓名寫入cookie/localstorage
+		var s = $('#setname #name').val();
+		setLocalValue("name", s);
+		alert("已儲存");
 	}	//function writeTag(text){	//準備寫入NFC
 
 	function writeToTag(){	//當手機靠近NFC標籤時，將資料寫入NFC
@@ -329,4 +354,42 @@
 			}
 		);
 	}	//function doShare(){	//透過NFC分享折價券給好友
+
+	function doRefresh(){	//搜尋資料
+		$('#home #tblResult tbody').html('');
+		//showBlockUI();
+		//以下是執行AJAX要求server端處理資料
+		$.ajax({
+			url: "ajaxShow.jsp",
+			type: 'POST', //根據實際情況，可以是'POST'或者'GET'
+			data: '',
+			dataType: 'xml', //指定數據類型，注意server要有一行：response.setContentType("text/xml;charset=utf-8");
+			timeout: 300000, //設置timeout時間，以千分之一秒為單位，1000 = 1秒
+			error: function (){	//錯誤提示
+				//unBlockUI();
+				alert ('系統忙碌中，請稍候再試!!');
+			},
+			success: function (xml){ //ajax請求成功後do something with xml
+				//unBlockUI();
+				var ResultCode = $(xml).find("ResultCode").text();
+				var ResultText = $(xml).find("ResultText").text();
+				if (ResultCode=='00000'){	//作業成功
+					var ss = "";
+					$(xml).find("item").each( function() {
+						ss += "<tr>";
+						ss += "<td>" + $(this).children("Logtime").text() + "</td>";
+						ss += "<td>" + $(this).children("Logperson").text() + "</td>";
+						ss += "<td>" + $(this).children("Logplace").text() + "</td>";
+						ss += "</tr>";
+					});
+					$('#home #tblResult tbody').html(ss);
+				}else{
+					alert(ResultText);
+				}	//if (ResultCode=='00000'){	//作業成功
+			}	//success: function (xml){ //ajax請求成功後do something with xml
+		});	//$.ajax({
+		//以上是執行AJAX要求server端處理資料
+		return false;
+	}	//function doSearch(){	//搜尋資料
+
 </script>
