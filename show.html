@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<meta http-equiv="refresh" content="5" />
+<!--<meta http-equiv="refresh" content="5" />-->
 <title>強固保全巡邏記錄</title>
 <script src="js/jquery-1.10.2.min.js"></script>
 <script type="text/javascript" src="js/util.js"></script>
@@ -11,6 +11,8 @@
 <body>
 	<div>
 		<input type="button" value="更新記錄" onclick="doRefresh();">
+		<br>
+		<input type="checkbox" name="chkAuto" id="chkAuto">自動更新
 	</div>
 	<div>
 		最後更新時間：<span id="lasttime" name="lasttime">
@@ -68,7 +70,9 @@
 						today.getHours()+':'+today.getMinutes()+':'+today.getSeconds()+
 					')';
 					$('#lasttime').html(currentDateTime);
-
+					if ($("input[name='chkAuto']").is(":checked")){
+						setTimeout( 'doRefresh()' , 5000);
+					}
 				}else{
 					alert(ResultText);
 				}	//if (ResultCode=='00000'){	//作業成功
