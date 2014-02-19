@@ -185,7 +185,7 @@
 
 	function handleOpenURL(url) {
 		var s = getParameterByName("c", url);
-		alert("received url: " + s);
+		//alert("received url: " + s);
 		if (notEmpty(s)){
 			sCoupon = decodeURIComponent(s);
 			alert("已取得" + sCoupon + "巡邏資料，將為您上傳至總公司!");
@@ -196,7 +196,7 @@
 				'logperson=' + myName + '&logplace=' + sCoupon,
 				'xml',
 				function(){doRefresh();},
-				true
+				false
 			);
 		}
 	}
@@ -361,7 +361,7 @@
 		//以下是執行AJAX要求server端處理資料
 		$.ajax({
 			url: "ajaxShow.jsp",
-			type: 'POST', //根據實際情況，可以是'POST'或者'GET'
+			type: 'GET', //根據實際情況，可以是'POST'或者'GET'
 			data: '',
 			dataType: 'xml', //指定數據類型，注意server要有一行：response.setContentType("text/xml;charset=utf-8");
 			timeout: 300000, //設置timeout時間，以千分之一秒為單位，1000 = 1秒
