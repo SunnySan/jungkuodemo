@@ -357,6 +357,35 @@
 
 	function doRefresh(){	//搜尋資料
 		$('#home #tblResult tbody').html('');
+
+		getDataFromServer(
+			'ajaxShow.jsp',
+			'',
+			'xml',
+			function(xml){
+				var ResultCode = $(xml).find("ResultCode").text();
+				var ResultText = $(xml).find("ResultText").text();
+				if (ResultCode=='00000'){	//作業成功
+					var ss = "";
+					$(xml).find("item").each( function() {
+						ss += "<tr>";
+						ss += "<td>" + $(this).children("Logtime").text() + "</td>";
+						ss += "<td>" + $(this).children("Logperson").text() + "</td>";
+						ss += "<td>" + $(this).children("Logplace").text() + "</td>";
+						ss += "</tr>";
+					});
+					$('#home #tblResult tbody').html(ss);
+				}else{
+					alert(ResultText);
+				}	//if (ResultCode=='00000'){	//作業成功
+
+			},
+			false
+		);
+
+
+
+/*
 		//showBlockUI();
 		//以下是執行AJAX要求server端處理資料
 		$.ajax({
@@ -389,6 +418,7 @@
 			}	//success: function (xml){ //ajax請求成功後do something with xml
 		});	//$.ajax({
 		//以上是執行AJAX要求server端處理資料
+*/
 		return false;
 	}	//function doSearch(){	//搜尋資料
 
